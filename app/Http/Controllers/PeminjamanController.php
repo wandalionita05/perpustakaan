@@ -60,4 +60,29 @@ class PeminjamanController extends Controller
         //
         // return back()->with('success', 'Buku berhasil dipinjam!');
     }
+    public function riwayat()
+    {
+        // Mengambil data peminjaman beserta judul bukunya
+        $riwayats = Peminjaman::join('bukus', 'peminjamans.buku_id', '=', 'bukus.id')
+            ->select('peminjamans.*', 'bukus.judul')
+            ->orderBy('peminjamans.created_at', 'desc')
+            ->get();
+
+        return view('riwayat', compact('riwayats'));
+    }
+
+    public function kembalikan($id)
+    {
+        $peminjaman = Peminjaman::find($id);
+        if ($peminjaman) {
+            // Tambah kembali stok buku (Regression Testing area)
+            $buku = Buku::find($peminjaman->buku_id);
+            if ($buku) {
+                $buku->increment('stok');
+            }
+            // Hapus dari riwayat karena sudah dikembalikan
+            $peminjaman->delete(); 
+        }
+        return back()->with('success', 'Buku berhasil dikembalikan dan stok telah bertambah!');
+    }
 }
